@@ -6,17 +6,28 @@
     <title>Magic Jump</title>
     <link rel="icon" type="image/png" href="mark.png">
     <style>
-        body { margin: 0; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; touch-action: none; -webkit-user-select: none; user-select: none; }
-        canvas { border: 2px solid #fff; max-width: 100%; max-height: 100vh; background: #000; display: block; }
-        #ui { position: absolute; color: white; top: 15px; left: 20px; font-size: 22px; font-weight: bold; text-shadow: 2px 2px 4px #000; pointer-events: none; z-index: 10; }
+        body { margin: 0; overflow: hidden; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100vh; font-family: sans-serif; touch-action: none; -webkit-user-select: none; user-select: none; }
+        #header-logo { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 15px 0; width: 100%; background: #000; color: white; border-bottom: 1px solid #333; }
+        #header-logo img { width: 32px; height: 32px; object-fit: contain; }
+        #header-logo span { font-size: 24px; font-weight: bold; letter-spacing: 1px; }
+        #game-container { position: relative; display: flex; justify-content: center; align-items: flex-start; width: 100%; flex-grow: 1; overflow: hidden; }
+        canvas { border: 2px solid #fff; max-width: 100%; max-height: calc(100vh - 80px); background: #000; display: block; }
+        #ui { position: absolute; color: white; top: 15px; left: 20px; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 4px #000; pointer-events: none; z-index: 10; }
         #watermark { position: absolute; bottom: 15px; color: rgba(255, 255, 255, 0.3); font-size: 14px; font-weight: bold; pointer-events: none; z-index: 10; }
     </style>
 </head>
 <body>
 
-<div id="ui">Altitude: <span id="score">0</span> m</div>
-<div id="watermark">Created by Himas</div>
-<canvas id="gameCanvas"></canvas>
+<header id="header-logo">
+    <img src="back.png" alt="MagicBlock Logo">
+    <span>MagicBlock</span>
+</header>
+
+<div id="game-container">
+    <div id="ui">Altitude: <span id="score">0</span> m</div>
+    <div id="watermark">Created by Himas</div>
+    <canvas id="gameCanvas"></canvas>
+</div>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
@@ -24,7 +35,7 @@ const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
 
 canvas.width = 400;
-canvas.height = window.innerHeight > 700 ? 700 : window.innerHeight;
+canvas.height = 700;
 
 let score = 0;
 let gravity = 0.22;
@@ -72,12 +83,8 @@ const wizard = {
     x: 170, y: canvas.height - 110, w: 55, h: 55,
     vx: 0, vy: 0,
     draw() {
-        if (wizardImg.complete) {
-            ctx.drawImage(wizardImg, this.x, this.y, this.w, this.h);
-        } else {
-            ctx.fillStyle = '#8e44ad';
-            ctx.fillRect(this.x, this.y, this.w, this.h);
-        }
+        if (wizardImg.complete) ctx.drawImage(wizardImg, this.x, this.y, this.w, this.h);
+        else { ctx.fillStyle = '#8e44ad'; ctx.fillRect(this.x, this.y, this.w, this.h); }
     },
     update() {
         this.vy += gravity;
@@ -121,9 +128,7 @@ function drawBackground() {
     if (score > 4000) {
         ctx.globalAlpha = Math.min(1, (score - 4000) / 4000);
         ctx.fillStyle = "white";
-        stars.forEach(s => {
-            ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
-        });
+        stars.forEach(s => { ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill(); });
         ctx.globalAlpha = 1;
     }
     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
@@ -151,17 +156,11 @@ function drawPlatforms() {
         else if (p.type === 'moving') { ctx.fillStyle = '#00d2ff'; }
         else if (p.type === 'fragile') { ctx.fillStyle = '#d35400'; }
         else { ctx.fillStyle = '#8e44ad'; }
-        ctx.beginPath();
-        ctx.roundRect(p.x, p.y, p.w, p.h, 6);
-        ctx.fill();
-        ctx.stroke();
+        ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, 6); ctx.fill(); ctx.stroke();
         if (p.type === 'fragile') {
-            ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 2; ctx.beginPath();
             ctx.moveTo(p.x + 10, p.y); ctx.lineTo(p.x + 20, p.y + 10); ctx.lineTo(p.x + 15, p.y + 18);
-            ctx.moveTo(p.x + 40, p.y); ctx.lineTo(p.x + 35, p.y + 8); ctx.lineTo(p.x + 50, p.y + 18);
-            ctx.stroke();
+            ctx.moveTo(p.x + 40, p.y); ctx.lineTo(p.x + 35, p.y + 8); ctx.lineTo(p.x + 50, p.y + 18); ctx.stroke();
         }
     });
 }
@@ -170,10 +169,7 @@ function initPlatforms() {
     platforms = [];
     platforms.push({ x: 0, y: canvas.height - 55, w: canvas.width, h: 60, type: 'ground', active: true });
     let currentY = canvas.height - 150;
-    for (let i = 0; i < 12; i++) {
-        platforms.push(createPlatform(currentY));
-        currentY -= 90;
-    }
+    for (let i = 0; i < 12; i++) { platforms.push(createPlatform(currentY)); currentY -= 90; }
 }
 
 function updatePlatforms() {
@@ -225,10 +221,7 @@ window.addEventListener('touchstart', e => {
     keys[side] = true;
 }, {passive: false});
 
-window.addEventListener('touchend', () => {
-    keys['KeyA'] = false;
-    keys['KeyD'] = false;
-});
+window.addEventListener('touchend', () => { keys['KeyA'] = false; keys['KeyD'] = false; });
 
 function handleInput() {
     if (keys['ArrowLeft'] || keys['KeyA']) wizard.vx = -6;
@@ -243,47 +236,21 @@ function restart() {
     gameState = 'playing';
 }
 
-function drawMenu(title, subtitle, info) {
-    ctx.fillStyle = 'rgba(0,0,0,0.85)';
-    ctx.fillRect(0,0,canvas.width, canvas.height);
-    ctx.fillStyle = 'white';
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 32px sans-serif';
-    ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 80);
-    
-    ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('PC CONTROLS:', canvas.width / 2, canvas.height / 2 - 20);
-    ctx.font = '16px sans-serif';
-    ctx.fillText('A / D or Arrow Keys', canvas.width / 2, canvas.height / 2 + 5);
-    
-    ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('MOBILE CONTROLS:', canvas.width / 2, canvas.height / 2 + 50);
-    ctx.font = '16px sans-serif';
-    ctx.fillText('Tap Left / Right side', canvas.width / 2, canvas.height / 2 + 75);
-
-    ctx.fillStyle = '#00d2ff';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 140);
-}
-
 function loop() {
     drawBackground();
     if (gameState === 'start') {
-        drawPlatforms();
-        wizard.draw();
-        drawMenu('MAGIC JUMP', 'TAP TO START', '');
+        drawPlatforms(); wizard.draw();
+        ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,canvas.width, canvas.height);
+        ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.font = 'bold 18px sans-serif';
+        ctx.fillText('PC: A/D or ARROWS', canvas.width / 2, canvas.height / 2 - 20);
+        ctx.fillText('MOBILE: TAP SIDES', canvas.width / 2, canvas.height / 2 + 10);
+        ctx.fillStyle = '#00d2ff'; ctx.font = 'bold 24px sans-serif';
+        ctx.fillText('TAP TO START', canvas.width / 2, canvas.height / 2 + 80);
     } else if (gameState === 'playing') {
-        handleInput();
-        wizard.update();
-        updatePlatforms();
-        drawPlatforms();
-        wizard.draw();
+        handleInput(); wizard.update(); updatePlatforms(); drawPlatforms(); wizard.draw();
     } else {
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(0,0,canvas.width, canvas.height);
-        ctx.fillStyle = 'white';
-        ctx.textAlign = 'center';
-        ctx.font = 'bold 30px sans-serif';
+        ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,canvas.width, canvas.height);
+        ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.font = 'bold 30px sans-serif';
         ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
         ctx.font = '20px sans-serif';
         ctx.fillText('Altitude: ' + score + ' m', canvas.width / 2, canvas.height / 2 + 20);
@@ -292,9 +259,7 @@ function loop() {
     requestAnimationFrame(loop);
 }
 
-initPlatforms(); 
-initBackdrop();
-loop();
+initPlatforms(); initBackdrop(); loop();
 </script>
 </body>
 </html>
