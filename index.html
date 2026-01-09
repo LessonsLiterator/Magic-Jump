@@ -32,7 +32,7 @@ let jumpStrength = -10.5;
 let platforms = [];
 let clouds = [];
 let stars = [];
-let gameState = 'playing';
+let gameState = 'start'; 
 let audioCtx = null;
 let musicStarted = false;
 
@@ -69,7 +69,7 @@ function playSound(freq, type, duration, slide) {
 }
 
 const wizard = {
-    x: 170, y: 590, w: 55, h: 55,
+    x: 170, y: canvas.height - 110, w: 55, h: 55,
     vx: 0, vy: 0,
     draw() {
         if (wizardImg.complete) {
@@ -210,6 +210,7 @@ function updatePlatforms() {
 const keys = {};
 window.addEventListener('keydown', e => {
     initAudio();
+    if (gameState === 'start') { gameState = 'playing'; return; }
     keys[e.code] = true;
     if (gameState === 'gameover' && e.code === 'Space') restart();
 });
@@ -217,13 +218,14 @@ window.addEventListener('keyup', e => keys[e.code] = false);
 
 window.addEventListener('touchstart', e => {
     initAudio();
+    if (gameState === 'start') { gameState = 'playing'; return; }
     if (gameState === 'gameover') { restart(); return; }
     const touchX = e.touches[0].clientX;
     const side = touchX < window.innerWidth / 2 ? 'KeyA' : 'KeyD';
     keys[side] = true;
 }, {passive: false});
 
-window.addEventListener('touchend', e => {
+window.addEventListener('touchend', () => {
     keys['KeyA'] = false;
     keys['KeyD'] = false;
 });
@@ -241,9 +243,36 @@ function restart() {
     gameState = 'playing';
 }
 
+function drawMenu(title, subtitle, info) {
+    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 32px sans-serif';
+    ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 80);
+    
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText('PC CONTROLS:', canvas.width / 2, canvas.height / 2 - 20);
+    ctx.font = '16px sans-serif';
+    ctx.fillText('A / D or Arrow Keys', canvas.width / 2, canvas.height / 2 + 5);
+    
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText('MOBILE CONTROLS:', canvas.width / 2, canvas.height / 2 + 50);
+    ctx.font = '16px sans-serif';
+    ctx.fillText('Tap Left / Right side', canvas.width / 2, canvas.height / 2 + 75);
+
+    ctx.fillStyle = '#00d2ff';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 140);
+}
+
 function loop() {
     drawBackground();
-    if (gameState === 'playing') {
+    if (gameState === 'start') {
+        drawPlatforms();
+        wizard.draw();
+        drawMenu('MAGIC JUMP', 'TAP TO START', '');
+    } else if (gameState === 'playing') {
         handleInput();
         wizard.update();
         updatePlatforms();
@@ -255,15 +284,16 @@ function loop() {
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
         ctx.font = 'bold 30px sans-serif';
-        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
         ctx.font = '20px sans-serif';
-        ctx.fillText('Altitude: ' + score + ' m', canvas.width / 2, canvas.height / 2 + 40);
-        ctx.fillText('Tap to Restart', canvas.width / 2, canvas.height / 2 + 80);
+        ctx.fillText('Altitude: ' + score + ' m', canvas.width / 2, canvas.height / 2 + 20);
+        ctx.fillText('Tap to Restart', canvas.width / 2, canvas.height / 2 + 70);
     }
     requestAnimationFrame(loop);
 }
 
-restart();
+initPlatforms(); 
+initBackdrop();
 loop();
 </script>
 </body>
